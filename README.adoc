@@ -1,0 +1,37 @@
+
+= Insanity =
+
+Let me get this out of the way up front: yes, I know I'm a fool for even trying.
+
+= Goal =
+
+A very basic demo of using Clojure to write XScreenSaver hacks.
+
+= Problem =
+
+The design of XSS is great - a simple and secure daemon locks the screen by
+creating a new blank fullscren window. It passes the `window id` of that
+window to a second process, which uses that ID to draw on the remote window.
+
+The problem is Java doesn't allow for this. If there is a way to use a foreign
+window ID, I surely can't find it.
+
+= 99% Solution =
+
+JNA supports X11. Thus far I am able to:
+
+* Connect to the `$DISPLAY`
+* Create a new `Window` with the `window id` of a foreign window
+* Get the `XWindowAttributes` of the window
+* Create an `XGCValues` to get the graphics context of that window
+* Create a Java `BufferedImage` and draw on it
+* Create a JNA `Memory` "buffer"
+* Create an `XImage` pointing to that buffer
+* Copy the `BufferedImage` data to the `Memory` buffer
+* Write the image (from the buffer) to the window with `XPutImage`
+
+= 1% Problem =
+
+This works when the target window is Konsole or Telegram. But when the target
+window is XScreenSaver it fails silently. The hack window doesn't update.
+
