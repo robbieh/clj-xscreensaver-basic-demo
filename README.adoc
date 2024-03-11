@@ -35,3 +35,14 @@ JNA supports X11. Thus far I am able to:
 This works when the target window is Konsole or Telegram. But when the target
 window is XScreenSaver it fails silently. The hack window doesn't update.
 
+= Running it =
+
+`lein uberjar` to build.
+
+Use `xwininfo` to get the target window ID and put it in the
+`XSCREENSAVER_WINDOW` environment variable.
+
+```
+XSCREESAVER_WINDOW=0xXXXXX java -jar clj-x11-0.1.0-SNAPSHOT-standalone.jar
+```
+
