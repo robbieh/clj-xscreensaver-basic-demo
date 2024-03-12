@@ -1,24 +1,37 @@
 
-= Insanity =
+= clj-xscreensaver-basic-demo =
 
-Let me get this out of the way up front: yes, I know I'm a fool for even trying.
+This is a very basic proof-of-concept demo of an https://www.jwz.org/xscreensaver/[XScreenSaver]
+hack implemented in Clojure. It relies on https://github.com/java-native-access/jna[JNA]
+to to write to the hack window.
 
-= Goal =
+= Running it =
 
-A very basic demo of using Clojure to write XScreenSaver hacks.
+Build with `lein uberjar` or download `clj-xscreensaver-basic-demo-0.0.1-standalone.jar`.
 
-= Problem =
+Stop XScreenSaver with `xscreensaver-command -exit`.
 
-The design of XSS is great - a simple and secure daemon locks the screen by
-creating a new blank fullscren window. It passes the `window id` of that
-window to a second process, which uses that ID to draw on the remote window.
+Edit your `~/.xscreensaver` config file and add this to the list of hacks, adjusting
+the path as necessary:
 
-The problem is Java doesn't allow for this. If there is a way to use a foreign
-window ID, I surely can't find it.
+```
+                        "arcs"  java -jar ./clj-xscreensaver-basic-demo-0.0.1-standalone.jar \n\
+```
 
-= 99% Solution =
+Start XScreenSaver with `xscreensaver &`. You'll now find a hack named "arcs" in the list when
+you start `xscreensaver-demo`.
 
-JNA supports X11. Thus far I am able to:
+= How it works =
+
+XScreenSaver hacks work by drawing on a window created by the main daemon. The window id
+is passed both as the `XSCREENSAVER_WINDOW` environment variable and on command line to
+the hack. 
+
+AWT does not support using remote window IDs in any way (I've tried). But JNA
+supports X11, which provides enough of the necessary X11 functions to get
+around that limiation.
+
+Roughly, this demo follows these steps:
 
 * Connect to the `$DISPLAY`
 * Create a new `Window` with the `window id` of a foreign window
@@ -27,22 +40,20 @@ JNA supports X11. Thus far I am able to:
 * Create a Java `BufferedImage` and draw on it
 * Create a JNA `Memory` "buffer"
 * Create an `XImage` pointing to that buffer
+
+Then in a loop:
+
+* Draw on the `BufferedImage` using standard Java2D or AWT methods
 * Copy the `BufferedImage` data to the `Memory` buffer
 * Write the image (from the buffer) to the window with `XPutImage`
 
-= 1% Problem =
+X related resources are freed in a shutdown hook.
 
-This works when the target window is Konsole or Telegram. But when the target
-window is XScreenSaver it fails silently. The hack window doesn't update.
+= Bugs and Questions =
 
-= Running it =
+I'm not sure I've handled the bit depth correctly. This might be using more memory
+than necessary. 
 
-`lein uberjar` to build.
+Only 32 and 24 bit depths are currently handled.
 
-Use `xwininfo` to get the target window ID and put it in the
-`XSCREENSAVER_WINDOW` environment variable.
-
-```
-XSCREESAVER_WINDOW=0xXXXXX java -jar clj-x11-0.1.0-SNAPSHOT-standalone.jar
-```
 

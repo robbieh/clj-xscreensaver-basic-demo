@@ -1,4 +1,4 @@
-(ns clj-x11.arcs
+(ns clj-xscreensaver-basic-demo.arcs
   (:import
     [java.awt.image BufferedImage]
     [java.awt Graphics Graphics2D]
